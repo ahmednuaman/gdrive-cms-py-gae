@@ -9,7 +9,7 @@ handlers:
   static_dir: static/assets
 
 - url: /admin/.*
-  script: admin.app
+  script: main.app
   login: admin
 
 - url: /.*
