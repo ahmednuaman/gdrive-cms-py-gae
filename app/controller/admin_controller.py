@@ -39,7 +39,7 @@ class GFile(BaseGItem):
     BaseGItem.__init__(self, item)
 
     self.body = ''
-    self.is_home = True if item['id'] == home_file_id else False
+    self.is_home = item['id'] == home_file_id
 
 
 class AdminController(BaseController):
@@ -176,7 +176,7 @@ class AdminController(BaseController):
       return True
 
     else:
-      return True if self._recur_counter[url] > self._recur_limit else False
+      return self._recur_counter[url] > self._recur_limit
 
   def _set_up_client(self):
     # get http obj

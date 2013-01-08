@@ -10,9 +10,7 @@ class PageModel(db.Model):
   is_folder = db.BooleanProperty(default=False)
 
 def get_page(name):
-  page = PageModel.get_by_key_name(name)
-
-  return page
+  return PageModel.get_by_key_name(name) if name else PageModel.gql('WHERE is_home = :1', True).get()
 
 def get_pages():
   return PageModel.all()
