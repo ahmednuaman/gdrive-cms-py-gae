@@ -5,7 +5,7 @@ class PageModel(db.Model):
   title = db.StringProperty()
   name = db.StringProperty()
   body = db.TextProperty()
-  child_of = db.SelfReferenceProperty()
+  child_of = db.StringProperty()
   is_home = db.BooleanProperty(default=False)
   is_folder = db.BooleanProperty(default=False)
 
@@ -24,7 +24,7 @@ def rebuild(files):
 
   return True
 
-def _add_files_to_model(files, parent_key=None):
+def _add_files_to_model(files, parent=None):
   # loop through files
   for file in files:
     # set our base props
@@ -41,13 +41,13 @@ def _add_files_to_model(files, parent_key=None):
       model.put()
 
       # loop through the children
-      _add_files_to_model(file.children, model.key())
+      _add_files_to_model(file.children, file.name)
 
     else:
       # a file
       model.is_folder = False
       model.body = file.body
-      model.child_of = parent_key
+      model.child_of = parent
       model.is_home = file.is_home
 
       model.put()

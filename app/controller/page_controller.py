@@ -6,7 +6,7 @@ class GMenuItem(object):
   def __init__(self, item):
     # set some defaults
     self.is_selected = False
-    self.children = [ ]
+    self.children = None
 
     self.id = item.g_id
     self.title = item.title
@@ -38,21 +38,25 @@ class PageController(BaseController):
 
   def _get_menu(self, items):
     # prepare our html
-    html = '<ul>'
+    html = ''
 
-    for item in items:
-      html += '<li><a %s title="%s" class="%s">%s</a>%s</li>' % (
-        '' if item.is_folder else ('href="/%s"' % item.name),
-        item.title,
-        ' '.join([
-          ('homepage' if item.is_home else ''),
-          ('selected' if item.is_selected else '')
-        ]),
-        item.title,
-        self._get_menu(item.children) if hasattr(item, 'children') else ''
-      )
+    # check for items
+    if items:
+      html += '<ul>'
 
-    html += '</ul>'
+      for item in items:
+        html += '<li><a %s title="%s" class="%s">%s</a>%s</li>' % (
+          '' if item.is_folder else ('href="/%s"' % item.name),
+          item.title,
+          ' '.join([
+            ('homepage' if item.is_home else ''),
+            ('selected' if item.is_selected else '')
+          ]),
+          item.title,
+          self._get_menu(item.children) if hasattr(item, 'children') else ''
+        )
+
+      html += '</ul>'
 
     return html
 
@@ -63,7 +67,7 @@ class PageController(BaseController):
     # get menu items
     for page in pages:
       # ignore children that aren't of this parent
-      if page.child_of is parent:
+      if page.child_of != parent:
         continue
 
       # create our item
@@ -73,7 +77,7 @@ class PageController(BaseController):
       item.is_selected = item.id == selected_page_id
 
       # find children
-      # item.children = self._prepare_menu_items(selected_page_id, pages, item)
+      item.children = self._prepare_menu_items(selected_page_id, pages, item.name)
 
       # add to our menu
       menu_items.append(item)
