@@ -4,6 +4,7 @@ import urllib
 import webapp2
 
 from app.controller.base_controller import BaseController
+from app.helper import template_helper
 from oauth2client.appengine import OAuth2Decorator
 from random import randint
 from time import sleep
@@ -16,55 +17,60 @@ decorator = OAuth2Decorator(
 )
 
 class AdminController(BaseController):
-  def __init__(self):
+  @decorator.oauth_required
+  def dispatch(self):
     # set up default vars
     # recur stuff
     self._recur_counter = { }
     self._recur_limit = 3
 
-  @decorator.oauth_required
-  def dispatch(self):
     # set up our client
     self._set_up_client()
 
-    # Dispatch the request.
-    webapp2.RequestHandler.dispatch(self)
+    # super
+    BaseController.dispatch(self)
 
   def get(self):
     # load edit view
     self._edit()
 
   def _edit(self, folder=None):
-    # if the user has selected a folder, get its contents
-    folder_contents = None
+    # set some vars
+    files = None
+    success = None
 
+    # check for folder
     if folder is not None:
-      folder_contents = self._make_req('https://www.googleapis.com/drive/v2/files?q=' +
-        urllib.quote_plus('"%s" in parents and mimeType = "application/vnd.google-apps.document"' % folder))
+      files = self._make_req('https://www.googleapis.com/drive/v2/files?q=' +
+        urllib.quote_plus('"%s" in parents and mimeType = "application/vnd.google-apps.document"' % folder))['items']
 
     # get the root folders
-    root_folders = self._make_req('https://www.googleapis.com/drive/v2/files?q=' +
-      urllib.quote_plus('"root" in parents and mimeType = "application/vnd.google-apps.folder"'))
+    folders = self._make_req('https://www.googleapis.com/drive/v2/files?q=' +
+      urllib.quote_plus('"root" in parents and mimeType = "application/vnd.google-apps.folder"'))['items']
 
-    # self.response.out.write(root_folders)
+    # load the view
+    template = template_helper.load('admin', {
+      'folders': folders,
+      'files': files,
+      'success': success,
+      'self_url': self.request.uri
+    })
+
+    self.response.out.write(template)
 
   def _increment_recur_counter(self, url):
     try:
-      self._recur_counter[url]++;
+      self._recur_counter[url] += 1;
 
     except KeyError:
       self._recur_counter[url] = 1
 
-  def _make_req(self, url, json=True):
+  def _make_req(self, url, parse_json=True):
     # make request
-    resp = self._http.request(url)
-
-    # decode
-    if json:
-      resp = json.loads(resp[0])
+    resp, body = self._http.request(url)
 
     # check response
-    if resp.status not 200:
+    if resp.status is not 200:
       if not self._ok_to_recur(url):
         # too much recursion
         raise Exception('Failed to make request to URL: %s; too much recursion' % url)
@@ -76,13 +82,10 @@ class AdminController(BaseController):
       sleep(.001 * randint(100, 1000))
 
       # recur
-      return self._make_req(url, json)
-
-    # set the body
-    body = resp[1]
+      return self._make_req(url, parse_json)
 
     # parse and return
-    return json.loads(body) if json else body
+    return json.loads(body) if parse_json else body
 
   def _ok_to_recur(self, url):
     try:
