@@ -25,3 +25,10 @@ class AdminController(BaseController):
     self.response.out.write(root_folders)
 
   def _set_up_client(self):
+    # set up flow
+    self._flow = OAuth2WebServerFlow(
+      client_id=config.client_id,
+      client_secret=config.client_secret,
+      scope='https://docs.googleusercontent.com/ https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.email',
+      redirect_uri=config.redirect_uri
+    )
