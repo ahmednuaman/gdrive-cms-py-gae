@@ -9,6 +9,7 @@ config = {
 }
 
 app = webapp2.WSGIApplication([
-  (r'/admin/(.*)', admin_controller.AdminController),
-  (r'/(.*)?', page_controller.PageController)
+  (admin_controller.decorator.callback_path, admin_controller.decorator.callback_handler()),
+  ('/admin/', admin_controller.AdminController),
+  (r'/([^\/]+)?', page_controller.PageController)
 ], config=config)
