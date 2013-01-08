@@ -1,0 +1,5 @@
+# get all this from your google api console: https://code.google.com/apis/console
+client_id = ''
+client_secret = ''
+redirect_uri = ''
+developer_key = ''

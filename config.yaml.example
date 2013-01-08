@@ -1,8 +1,0 @@
-# get all this from your google api console: https://code.google.com/apis/console
-client_id: ''
-client_secret: ''
-redirect_uri: ''
-developer_key: ''
-
-# now enter the admin email for the user(s) who can deploy, seperate by a space please
-admins: 'foo@googlemail.com'
