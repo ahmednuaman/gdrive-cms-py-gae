@@ -34,4 +34,4 @@ nosetests.xml
 .project
 .pydevproject
 
-config.yaml
+config.py
