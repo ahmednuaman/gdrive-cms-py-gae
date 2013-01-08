@@ -1,10 +1,13 @@
 import config
 import json
+import re
 import urllib
 import webapp2
 
 from app.controller.base_controller import BaseController
 from app.helper import template_helper
+from app.model import page_model
+from bs4 import BeautifulSoup
 from oauth2client.appengine import OAuth2Decorator
 from random import randint
 from time import sleep
@@ -21,7 +24,7 @@ class BaseGItem(object):
   def __init__(self, item):
     self.g_id = item['id']
     self.title = item['title']
-    self.name = item['title'].lower().replace(r'[^\w\d]+', '_')
+    self.name = re.sub(r'[^\w\d]+', '_', item['title'].lower())
 
 
 class GFolder(BaseGItem):
@@ -70,9 +73,9 @@ class AdminController(BaseController):
     success = None
 
     # check for folder
-    if folder is not None:
+    if folder:
       # check for the homepage file
-      if file is not None:
+      if file:
         # update the site
         success = self._update(folder, file)
 
@@ -99,7 +102,15 @@ class AdminController(BaseController):
     html = self._make_req(url, False)
 
     # prepare el dom
-    print html
+    doc = BeautifulSoup(html)
+
+    # get the body
+    body = doc.body.prettify()
+
+    # remove body tags
+    body = re.sub(r'\<\/?body[^\>]+\>', '', body)
+
+    return body
 
   def _increment_recur_counter(self, url):
     try:
@@ -176,4 +187,4 @@ class AdminController(BaseController):
     files = self._iterate_over_files(folder_id, home_file_id)
 
     # use our model to rebuild our pages
-    # return page_model.rebuild(files)
+    return page_model.rebuild(files)
